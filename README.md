@@ -1,6 +1,6 @@
 <!-- -*- mode: markdown; -->
 
-This is a package to run TeX and it's derivatives while also collecting
+This is a package to run TeX and its derivatives while also collecting
 additional information about the generated files and so forth.
 
 While we provide manual methods by which the renderer can be run, it is
@@ -20,7 +20,7 @@ integration with an event handler library, e.g. iolib.
 Provide the filename and the defaults should be sensible
 (i.e. `pdflatex` with PDF output).  Otherwise there are many things to
 configure; you may even supply additional parameters to the underlying
-`RUN-PROGRAM` or similar facility.
+`RUN-PROGRAM`, or similar facility.
 
     > (tex "filename")
     => "/home/username/"
