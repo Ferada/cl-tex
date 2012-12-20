@@ -20,19 +20,20 @@ integration with an event handler library, e.g. iolib.
 Provide the filename and the defaults should be sensible
 (i.e. `pdflatex` with PDF output).  Otherwise there are many things to
 configure; you may even supply additional parameters to the underlying
-`RUN-PROGRAM`, or similar facility.
+`RUN-PROGRAM`, or a similar facility to execute other programs.
 
     > (tex "filename")
     => "/home/username/"
        #<SB-IMPL::PROCESS :EXITED 0>
        (#P"filename.log" #P"filename.pdf" #P"filename.aux")
 
-Errors are raised if the corresponding parameter `:ERROR` is set.
-Currently the condition `TEX-RUNTIME-ERROR` for problems concerning the
-process structure exists.  The slots `PROCESS` contains the
-`SB-IMPL::PROCESS` structure and `WRITTEN-FILES` contains a `LIST` of
-written files, if those were collected via the `:COLLECT-WRITTEN-FILES`
-parameter (`T` by default).
+Errors are raised if the corresponding parameter `:TEX-ERROR` is set
+(`:ERROR` is already used by the underlying `RUN-PROGRAM`).  Currently
+the condition `TEX-RUNTIME-ERROR` for problems concerning the process
+structure exists.  The slots `PROCESS` contains the `SB-IMPL::PROCESS`
+structure and `WRITTEN-FILES` contains a `LIST` of written files, if
+those were collected via the `:COLLECT-WRITTEN-FILES` parameter (`T`
+by default).
 
     > (tex "no-such-filename")
     => TeX quit with non-zero exit status.
