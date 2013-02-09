@@ -179,7 +179,7 @@ If ERROR is set, an ERROR is raised if the exit status wasn't zero."
         (values output-directory process)))))
 
 ;; TODO: make conditional
-(defun run-tex/trace-written-files (pathname &rest rest &key function (output-directory T) (tex-error T) &allow-other-keys)
+(defun run-tex/trace-written-files (pathname &rest rest &key (output-directory T) (tex-error T) &allow-other-keys)
   "Same as RUN-TEX, but collects written-to files and returns them as third return value."
   (let ((directory (calculate-output-directory output-directory pathname))
         written)
@@ -194,14 +194,12 @@ If ERROR is set, an ERROR is raised if the exit status wasn't zero."
               `(:output-directory ,directory :wait NIL ,.(filter-key-args rest :function :output-directory))
               (list directory)
               :close-write
-              :function function
-              :event-handler (lambda (event) (pushnew (parse-namestring (inotify-event-name event)) written
-                                                      :test #'equal)))))
-      (if function
-          (run)
-          (let ((process (run)))
-            (maybe-tex-runtime-error tex-error process written)
-            (values directory process written))))))
+              :event-handler (lambda (event)
+                               (pushnew (parse-namestring (inotify-event-name event)) written
+                                        :test #'equal)))))
+      (let ((process (run)))
+        (maybe-tex-runtime-error tex-error process written)
+        (values directory process written)))))
 
 (defconstant +tex-output-types+
   '("pdf" "dvi" "aux" "log"))
