@@ -38,3 +38,31 @@ by default).
     > (tex "no-such-filename")
     => TeX quit with non-zero exit status.
           [Condition of type TEX-RUNTIME-ERROR]
+
+Using `:INPUT-FORMAT` and `:OUTPUT-FORMAT` the best path through all
+renderers and postprocessing tools may be automatically derived.
+
+The input format is determined by looking at the first 4k byte of the
+file and looking for patterns (currently only `"documentclass"` to check
+for LaTeX, everything else is regarded as TeX files).
+
+E.g. given a regular LaTeX file the following interaction allows a
+succinct way to describe the desired output:
+
+    > (tex "data/test-2.tex" :output-format :ps)
+    => #P"test-2.ps"
+       #P"/home/user/src/"
+       #<SB-IMPL::PROCESS :EXITED 0>
+       (#P"test-2.aux" #P"test-2.pdf" #P"test-2.log" #P"test-2.ps")
+
+Behind the scenes the best path was derived as
+`:LUALATEX :PDF :PDFTOPS`, which means running LuaLaTeX producing a PDF
+file (which is also the default for that renderer) and then
+postprocessing the output with `"pdftops"` (or `"pdf2ps"`, if that
+program wasn't available on the machine).
+
+This facility is quite flexible and may even be efficient if some more
+work is put into caching the results of the program lookup in the
+environment `PATH` variable.  The current render route only allows for
+one conversion at all, so it would need to be fixed for machines without
+the necessary direct converters.
