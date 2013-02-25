@@ -43,6 +43,9 @@ All other cases result in an error."
     ((:pdf :ps)  :pdftops :pdf2ps)
     ((:ps  :pdf) :ps2pdf)))
 
+(defvar *conversion-tool-arguments*
+  `((:dvips ,(lambda (input output) `("-o" ,output ,input)))))
+
 (defvar *tex-compilers*
   '((:lualatex (:pdf :dvi) (:output-format))
     (:luatex (:pdf :dvi) (:output-format))
@@ -353,9 +356,12 @@ See also RUN-TEX/TRACE-WRITTEN-FILES."
       (destructuring-bind (from to)
           (car (rassoc postprocess *conversion-tools* :test #'member))
         (let ((input (merge-pathnames (make-pathname :type (format-tex-symbol from)) jobname))
-              (output (merge-pathnames (make-pathname :type (format-tex-symbol to)) jobname)))
+              (output (merge-pathnames (make-pathname :type (format-tex-symbol to)) jobname))
+              (args (cadr (assoc program *conversion-tool-arguments*))))
           (let ((process (sb-ext:run-program (format-tex-symbol program)
-                                             (list (namestring input) (namestring output))
+                                             (funcall (or args #'list)
+                                                      (namestring input)
+                                                      (namestring output))
                                              :search T)))
             (when (osicat:regular-file-exists-p output)
               (push output written))
