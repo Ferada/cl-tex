@@ -24,12 +24,13 @@ a STRING or NIL."
 If DIRECTORY is NIL, this only resets after the BODY was run."
   (let ((old-directory-sym (gensym))
         (directory-sym (gensym)))
-    `(let ((,old-directory-sym (osicat:current-directory))
-           (,directory-sym ,directory))
+    `(let* ((,old-directory-sym (osicat:current-directory))
+            (,directory-sym ,directory)
+            (*default-pathname-defaults* ,directory-sym))
        (unwind-protect
             (progn
               (when ,directory-sym
-                (osicat-posix:chdir (namestring ,directory-sym)))
+                (setf (osicat:current-directory) ,directory-sym))
               ,@body)
          (setf (osicat:current-directory) ,old-directory-sym)))))
 

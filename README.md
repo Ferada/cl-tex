@@ -1,4 +1,4 @@
-<!-- -*- mode: markdown; -->
+<!-- -*- mode: markdown; fill-column: 72; coding: utf-8-unix; -->
 
 This is a package to run TeX and its derivatives while also collecting
 additional information about the generated files and so forth.
