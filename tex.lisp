@@ -372,10 +372,10 @@ See also RUN-TEX/TRACE-WRITTEN-FILES."
 
 (defun tex (pathname
             &rest rest
-            &key (tex :lualatex)
+            &key (tex :lualatex texp)
                  (jobname (pathname-name pathname))
                  (collect-written-files T)
-                 output-format
+                 (output-format NIL output-format-p)
                  (input-format T)
                  require-lua-p
                  postprocess
@@ -411,9 +411,11 @@ output file."
          output-format
          require-lua-p)
       ;; TODO: override necessary?
-      (setf output-format best-output-format
-            rest `(:output-format ,output-format ,@rest))
-      (when (and (not tex) renderer)
+      (setf output-format best-output-format)
+      (if (valid-option-p tex :output-format)
+          (setf rest (filter-key-args rest :output-format))
+          (setf rest `(:output-format ,output-format ,@rest)))
+      (when (and (not texp) renderer)
         (setf tex renderer
               rest `(:tex ,tex ,@rest)))
       (when (and (not postprocess) best-postprocess)
@@ -423,22 +425,26 @@ output file."
         (collect-written-files
          (error "can't collect written files unless waiting for process death"))
         (postprocess
-         (error "can't postprocess files unless waiting for process death"))))
-    ;; use inotify if possible, else guess
-    (multiple-value-bind (output-pathname output-directory process written)
-        (ecase collect-written-files
-          ((T :trace)
-           (apply #'run-tex/trace-written-files pathname rest))
-          (:guess
-           (apply #'run-tex/guess-written-files pathname rest))
-          ((NIL)
-           (apply #'run-tex pathname rest)))
-      (with-current-directory output-directory
-        (when postprocess
-          (multiple-value-bind (postprocess-output postprocess-written)
-              (postprocess jobname postprocess)
-            (setf output-pathname postprocess-output
-                  written (union written postprocess-written :test #'equal)))))
-      (if collect-written-files
-          (values output-pathname output-directory process written)
-          (values output-pathname output-directory process)))))
+         (error "can't postprocess files unless waiting for process death")))))
+  (when (and output-format-p (not (valid-option-p tex :output-format)))
+    (if (eq (default-output-format tex) output-format)
+        (setf rest (filter-key-args rest :output-format))
+        (error "OUTPUT-FORMAT is invalid for program ~S" tex)))
+  ;; use inotify if possible, else guess
+  (multiple-value-bind (output-pathname output-directory process written)
+      (ecase collect-written-files
+        ((T :trace)
+         (apply #'run-tex/trace-written-files pathname rest))
+        (:guess
+         (apply #'run-tex/guess-written-files pathname rest))
+        ((NIL)
+         (apply #'run-tex pathname rest)))
+    (with-current-directory output-directory
+      (when postprocess
+        (multiple-value-bind (postprocess-output postprocess-written)
+            (postprocess jobname postprocess)
+          (setf output-pathname postprocess-output
+                written (union written postprocess-written :test #'equal)))))
+    (if collect-written-files
+        (values output-pathname output-directory process written)
+        (values output-pathname output-directory process))))
